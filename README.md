@@ -1,8 +1,8 @@
-# Simple Calculator
+# Simple Scientific Calculator
 
 A desktop calculator application built with Python and Tkinter.
 
-Simple Calculator started as a basic command-line learning project and has grown into a structured Python application with a graphical interface, persistent storage, calculation history, named memory values, automated testing, static type checking, linting, code formatting, CI, and Windows executable builds.
+Simple Scientific Calculator started as a basic command-line learning project and has grown into a structured Python application with a graphical interface, persistent storage, calculation history, named memory values, automated testing, static type checking, linting, code formatting, CI, and Windows executable builds.
 
 Current application version:
 
@@ -144,13 +144,13 @@ Application data is stored as JSON.
 On Windows, the calculator stores its data under the current user's local application-data directory:
 
 ```text
-%LOCALAPPDATA%\SimpleCalculator\calculator_data.json
+%LOCALAPPDATA%\SimpleScientificCalculator\calculator_data.json
 ```
 
 A typical path looks like:
 
 ```text
-C:\Users\Username\AppData\Local\SimpleCalculator\calculator_data.json
+C:\Users\Username\AppData\Local\SimpleScientificCalculator\calculator_data.json
 ```
 
 This keeps user-generated data outside the application installation directory and allows packaged versions of the program to safely retain history and memory.
@@ -504,7 +504,7 @@ python -m pip install pyinstaller
 Build the executable:
 
 ```bash
-python -m PyInstaller --onefile --windowed --name SimpleCalculator main.py
+python -m PyInstaller --onefile --windowed --name SimpleScientificCalculator main.py
 ```
 
 The resulting executable is created under:
@@ -516,7 +516,7 @@ dist/
 Example:
 
 ```text
-dist/SimpleCalculator.exe
+dist/SimpleScientificCalculator.exe
 ```
 
 Python does not need to be installed on the computer running the packaged executable.
@@ -528,13 +528,13 @@ Python does not need to be installed on the computer running the packaged execut
 A release build can include the application version in the filename:
 
 ```bash
-python -m PyInstaller --onefile --windowed --name SimpleCalculator-v1.0.0 main.py
+python -m PyInstaller --onefile --windowed --name SimpleScientificCalculator-v1.0.0 main.py
 ```
 
 This produces:
 
 ```text
-dist/SimpleCalculator-v1.0.0.exe
+dist/SimpleScientificCalculator-v1.0.0.exe
 ```
 
 ---
@@ -564,7 +564,7 @@ __version__ = "1.0.0"
 Git releases can be tagged with:
 
 ```bash
-git tag -a v1.0.0 -m "Simple Calculator v1.0.0"
+git tag -a v1.0.0 -m "Simple Scientific Calculator v1.0.0"
 ```
 
 and pushed with:
@@ -601,14 +601,14 @@ is pushed, the workflow can:
 For example:
 
 ```bash
-git tag -a v1.1.0 -m "Simple Calculator v1.1.0"
+git tag -a v1.1.0 -m "Simple Scientific Calculator v1.1.0"
 git push origin v1.1.0
 ```
 
 can produce:
 
 ```text
-SimpleCalculator-v1.1.0.exe
+SimpleScientificCalculator-v1.1.0.exe
 ```
 
 ---

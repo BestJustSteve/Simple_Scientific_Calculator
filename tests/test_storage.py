@@ -210,4 +210,4 @@ def test_get_data_file_creates_app_directory(tmp_path, monkeypatch):
 
     assert data_file.parent.exists()
     assert data_file.name == "calculator_data.json"
-    assert data_file.parent.name == "SimpleCalculator"
+    assert data_file.parent.name == "SimpleScientificCalculator"

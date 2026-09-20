@@ -41,19 +41,19 @@ jobs:
 
       - name: Build Windows executable
         run: |
-          python -m PyInstaller --onefile --windowed --name SimpleCalculator main.py
+          python -m PyInstaller --onefile --windowed --name SimpleScientificCalculator main.py
 
       - name: Rename executable
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}"
           Rename-Item `
-            "dist\SimpleCalculator.exe" `
-            "SimpleCalculator-$version.exe"
+            "dist\SimpleScientificCalculator.exe" `
+            "SimpleScientificCalculator-$version.exe"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/SimpleCalculator-${{ github.ref_name }}.exe
+            dist/SimpleScientificCalculator-${{ github.ref_name }}.exe
           generate_release_notes: true

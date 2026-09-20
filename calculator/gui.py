@@ -63,7 +63,7 @@ class CalculatorApp:
             )
 
     def configure_window(self) -> None:
-        self.root.title(f"Simple Calculator {__version__}")
+        self.root.title(f"Simple Scientific Calculator {__version__}")
 
         self.root.geometry("400x660")
         self.root.resizable(False, False)
@@ -646,7 +646,7 @@ class CalculatorApp:
         messagebox.showinfo(
             "About",
             (
-                f"Simple Calculator {__version__}\n\n"
+                f"Simple Scientific Calculator {__version__}\n\n"
                 "Built with Python, tkinter, ttk, JSON, AST, and pytest.\n\n"
                 "Features:\n"
                 "- Safe expression parsing\n"

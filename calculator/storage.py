@@ -5,8 +5,7 @@ from typing import TypedDict
 
 from calculator.calculator_engine import Number
 
-APP_NAME = "SimpleCalculator"
-
+APP_NAME = "SimpleScientificCalculator"
 
 class HistoryEntry(TypedDict):
     timestamp: str
