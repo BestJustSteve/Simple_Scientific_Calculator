@@ -87,16 +87,12 @@ def convert_inverse_angle(
 def factorial(value: Number) -> int:
     if isinstance(value, float):
         if not value.is_integer():
-            raise ValueError(
-                "Factorial requires a whole number"
-            )
+            raise ValueError("Factorial requires a whole number")
 
         value = int(value)
 
     if value < 0:
-        raise ValueError(
-            "Factorial requires a non-negative number"
-        )
+        raise ValueError("Factorial requires a non-negative number")
 
     return math.factorial(value)
 
@@ -107,9 +103,7 @@ def evaluate_node(
 ) -> Number:
     if isinstance(node, ast.Constant):
         if isinstance(node.value, bool):
-            raise ValueError(
-                "Boolean values are not supported"
-            )
+            raise ValueError("Boolean values are not supported")
 
         if isinstance(
             node.value,
@@ -117,27 +111,19 @@ def evaluate_node(
         ):
             return node.value
 
-        raise ValueError(
-            "Only numeric constants are supported"
-        )
+        raise ValueError("Only numeric constants are supported")
 
     if isinstance(node, ast.Name):
         if node.id in CONSTANTS:
             return CONSTANTS[node.id]
 
-        raise ValueError(
-            "Invalid constant"
-        )
+        raise ValueError("Invalid constant")
 
     if isinstance(node, ast.BinOp):
-        binary_operator_type = type(
-            node.op
-        )
+        binary_operator_type = type(node.op)
 
         if binary_operator_type not in OPERATORS:
-            raise ValueError(
-                "Invalid operator"
-            )
+            raise ValueError("Invalid operator")
 
         left = evaluate_node(
             node.left,
@@ -149,9 +135,7 @@ def evaluate_node(
             angle_mode,
         )
 
-        operation = OPERATORS[
-            binary_operator_type
-        ]
+        operation = OPERATORS[binary_operator_type]
 
         return operation(
             left,
@@ -159,36 +143,26 @@ def evaluate_node(
         )
 
     if isinstance(node, ast.UnaryOp):
-        unary_operator_type = type(
-            node.op
-        )
+        unary_operator_type = type(node.op)
 
         if unary_operator_type not in OPERATORS:
-            raise ValueError(
-                "Invalid operator"
-            )
+            raise ValueError("Invalid operator")
 
         operand = evaluate_node(
             node.operand,
             angle_mode,
         )
 
-        operation = OPERATORS[
-            unary_operator_type
-        ]
+        operation = OPERATORS[unary_operator_type]
 
-        return operation(
-            operand
-        )
+        return operation(operand)
 
     if isinstance(node, ast.Call):
         if not isinstance(
             node.func,
             ast.Name,
         ):
-            raise ValueError(
-                "Invalid function"
-            )
+            raise ValueError("Invalid function")
 
         function_name = node.func.id
 
@@ -200,19 +174,13 @@ def evaluate_node(
         )
 
         if not valid_function:
-            raise ValueError(
-                "Invalid function"
-            )
+            raise ValueError("Invalid function")
 
         if len(node.args) != 1:
-            raise ValueError(
-                "Scientific functions require one argument"
-            )
+            raise ValueError("Scientific functions require one argument")
 
         if node.keywords:
-            raise ValueError(
-                "Keyword arguments are not supported"
-            )
+            raise ValueError("Keyword arguments are not supported")
 
         argument = evaluate_node(
             node.args[0],
@@ -225,24 +193,14 @@ def evaluate_node(
                 angle_mode,
             )
 
-            trig_function = TRIG_FUNCTIONS[
-                function_name
-            ]
+            trig_function = TRIG_FUNCTIONS[function_name]
 
-            return trig_function(
-                converted_angle
-            )
+            return trig_function(converted_angle)
 
         if function_name in INVERSE_TRIG_FUNCTIONS:
-            inverse_function = (
-                INVERSE_TRIG_FUNCTIONS[
-                    function_name
-                ]
-            )
+            inverse_function = INVERSE_TRIG_FUNCTIONS[function_name]
 
-            result = inverse_function(
-                float(argument)
-            )
+            result = inverse_function(float(argument))
 
             return convert_inverse_angle(
                 result,
@@ -250,21 +208,13 @@ def evaluate_node(
             )
 
         if function_name == "factorial":
-            return factorial(
-                argument
-            )
+            return factorial(argument)
 
-        function = FUNCTIONS[
-            function_name
-        ]
+        function = FUNCTIONS[function_name]
 
-        return function(
-            argument
-        )
+        return function(argument)
 
-    raise ValueError(
-        "Invalid expression"
-    )
+    raise ValueError("Invalid expression")
 
 
 def calculate_expression(
@@ -284,9 +234,7 @@ def calculate_expression(
     )
 
     if isinstance(result, complex):
-        raise TypeError(
-            "Complex numbers are not supported"
-        )
+        raise TypeError("Complex numbers are not supported")
 
     return result
 
@@ -302,9 +250,7 @@ def format_number(
         ):
             return 0
 
-        nearest_integer = round(
-            number
-        )
+        nearest_integer = round(number)
 
         if math.isclose(
             number,
@@ -312,8 +258,6 @@ def format_number(
             rel_tol=1e-12,
             abs_tol=1e-12,
         ):
-            return int(
-                nearest_integer
-            )
+            return int(nearest_integer)
 
     return number

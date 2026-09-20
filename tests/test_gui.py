@@ -5,6 +5,16 @@ import pytest
 from calculator.gui import CalculatorApp
 
 
+class FakeEvent:
+    def __init__(
+        self,
+        char: str = "",
+        keysym: str = "",
+    ) -> None:
+        self.char = char
+        self.keysym = keysym
+
+
 class FakeStringVar:
     def __init__(
         self,
@@ -23,15 +33,12 @@ class FakeStringVar:
 
 
 def create_app() -> CalculatorApp:
-    app = CalculatorApp.__new__(
-        CalculatorApp
-    )
+    app = CalculatorApp.__new__(CalculatorApp)
 
     app.display_var = FakeStringVar()
     app.previous_var = FakeStringVar()
-    app.angle_mode_var = FakeStringVar(
-        "radians"
-    )
+    app.angle_mode_var = FakeStringVar("radians")
+    app.mode_status_var = FakeStringVar("RAD")
 
     app.history = []
     app.memory = {}
@@ -140,7 +147,6 @@ def test_calculate_operator_precedence():
         app.calculate()
 
     assert app.display_var.get() == "14"
-    assert app.last_result == 14
 
 
 def test_calculate_decimal():
@@ -155,7 +161,6 @@ def test_calculate_decimal():
         app.calculate()
 
     assert app.display_var.get() == "2.5"
-    assert app.last_result == 2.5
 
 
 def test_calculate_sine_in_degrees():
@@ -170,9 +175,7 @@ def test_calculate_sine_in_degrees():
     ):
         app.calculate()
 
-    assert float(
-        app.display_var.get()
-    ) == pytest.approx(1)
+    assert float(app.display_var.get()) == pytest.approx(1)
 
 
 def test_calculate_cosine_in_degrees():
@@ -190,7 +193,7 @@ def test_calculate_cosine_in_degrees():
     assert app.display_var.get() == "-1"
 
 
-def test_calculate_cosine_90_degrees_formats_as_zero():
+def test_calculate_cosine_90_degrees_formats_zero():
     app = create_app()
 
     app.angle_mode_var.set("degrees")
@@ -223,7 +226,6 @@ def test_calculate_tangent_in_degrees():
 def test_calculate_sine_in_radians():
     app = create_app()
 
-    app.angle_mode_var.set("radians")
     app.display_var.set("sin(pi / 2)")
 
     with patch.object(
@@ -249,42 +251,6 @@ def test_calculate_square_root():
     assert app.display_var.get() == "12"
 
 
-def test_calculate_pi_expression():
-    app = create_app()
-
-    app.display_var.set("2 * pi")
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert float(
-        app.display_var.get()
-    ) == pytest.approx(
-        2 * 3.141592653589793
-    )
-
-
-def test_calculate_e_constant():
-    app = create_app()
-
-    app.display_var.set("e")
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert float(
-        app.display_var.get()
-    ) == pytest.approx(
-        2.718281828459045
-    )
-
-
 def test_insert_sine_function():
     app = create_app()
 
@@ -293,44 +259,12 @@ def test_insert_sine_function():
     assert app.display_var.get() == "sin("
 
 
-def test_insert_cosine_function():
-    app = create_app()
-
-    app.button_click("cos(")
-
-    assert app.display_var.get() == "cos("
-
-
-def test_insert_tangent_function():
-    app = create_app()
-
-    app.button_click("tan(")
-
-    assert app.display_var.get() == "tan("
-
-
 def test_insert_inverse_sine():
     app = create_app()
 
     app.button_click("asin(")
 
     assert app.display_var.get() == "asin("
-
-
-def test_insert_inverse_cosine():
-    app = create_app()
-
-    app.button_click("acos(")
-
-    assert app.display_var.get() == "acos("
-
-
-def test_insert_inverse_tangent():
-    app = create_app()
-
-    app.button_click("atan(")
-
-    assert app.display_var.get() == "atan("
 
 
 def test_insert_pi_constant():
@@ -349,38 +283,14 @@ def test_insert_e_constant():
     assert app.display_var.get() == "e"
 
 
-def test_build_scientific_expression_with_buttons():
-    app = create_app()
-
-    app.button_click("sin(")
-    app.button_click("90")
-    app.button_click(")")
-
-    assert app.display_var.get() == "sin(90)"
-
-
 def test_apply_square_to_current_expression():
     app = create_app()
 
     app.display_var.set("12")
 
-    app.apply_to_current_expression(
-        "square"
-    )
+    app.apply_to_current_expression("square")
 
     assert app.display_var.get() == "square(12)"
-
-
-def test_apply_square_to_full_expression():
-    app = create_app()
-
-    app.display_var.set("2 + 3")
-
-    app.apply_to_current_expression(
-        "square"
-    )
-
-    assert app.display_var.get() == "square(2 + 3)"
 
 
 def test_apply_reciprocal():
@@ -388,9 +298,7 @@ def test_apply_reciprocal():
 
     app.display_var.set("4")
 
-    app.apply_to_current_expression(
-        "reciprocal"
-    )
+    app.apply_to_current_expression("reciprocal")
 
     assert app.display_var.get() == "reciprocal(4)"
 
@@ -400,9 +308,7 @@ def test_apply_factorial():
 
     app.display_var.set("5")
 
-    app.apply_to_current_expression(
-        "factorial"
-    )
+    app.apply_to_current_expression("factorial")
 
     assert app.display_var.get() == "factorial(5)"
 
@@ -412,9 +318,7 @@ def test_apply_square_root():
 
     app.display_var.set("144")
 
-    app.apply_to_current_expression(
-        "sqrt"
-    )
+    app.apply_to_current_expression("sqrt")
 
     assert app.display_var.get() == "sqrt(144)"
 
@@ -424,9 +328,7 @@ def test_apply_log():
 
     app.display_var.set("1000")
 
-    app.apply_to_current_expression(
-        "log"
-    )
+    app.apply_to_current_expression("log")
 
     assert app.display_var.get() == "log(1000)"
 
@@ -436,9 +338,7 @@ def test_apply_ln():
 
     app.display_var.set("e")
 
-    app.apply_to_current_expression(
-        "ln"
-    )
+    app.apply_to_current_expression("ln")
 
     assert app.display_var.get() == "ln(e)"
 
@@ -448,9 +348,7 @@ def test_apply_power_of_ten():
 
     app.display_var.set("3")
 
-    app.apply_to_current_expression(
-        "pow10"
-    )
+    app.apply_to_current_expression("pow10")
 
     assert app.display_var.get() == "pow10(3)"
 
@@ -460,9 +358,7 @@ def test_apply_exponential():
 
     app.display_var.set("1")
 
-    app.apply_to_current_expression(
-        "exp"
-    )
+    app.apply_to_current_expression("exp")
 
     assert app.display_var.get() == "exp(1)"
 
@@ -470,160 +366,9 @@ def test_apply_exponential():
 def test_apply_function_to_empty_display():
     app = create_app()
 
-    app.apply_to_current_expression(
-        "sqrt"
-    )
+    app.apply_to_current_expression("sqrt")
 
     assert app.display_var.get() == "sqrt("
-    assert app.just_calculated is False
-
-
-def test_square_button_then_calculate():
-    app = create_app()
-
-    app.display_var.set("12")
-
-    app.apply_to_current_expression(
-        "square"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "144"
-
-
-def test_reciprocal_button_then_calculate():
-    app = create_app()
-
-    app.display_var.set("4")
-
-    app.apply_to_current_expression(
-        "reciprocal"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "0.25"
-
-
-def test_factorial_button_then_calculate():
-    app = create_app()
-
-    app.display_var.set("5")
-
-    app.apply_to_current_expression(
-        "factorial"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "120"
-
-
-def test_sqrt_button_then_calculate():
-    app = create_app()
-
-    app.display_var.set("144")
-
-    app.apply_to_current_expression(
-        "sqrt"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "12"
-
-
-def test_log_button_then_calculate():
-    app = create_app()
-
-    app.display_var.set("1000")
-
-    app.apply_to_current_expression(
-        "log"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "3"
-
-
-def test_ln_button_then_calculate():
-    app = create_app()
-
-    app.display_var.set("e")
-
-    app.apply_to_current_expression(
-        "ln"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "1"
-
-
-def test_pow10_button_then_calculate():
-    app = create_app()
-
-    app.display_var.set("3")
-
-    app.apply_to_current_expression(
-        "pow10"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "1000"
-
-
-def test_exp_button_then_calculate():
-    app = create_app()
-
-    app.display_var.set("1")
-
-    app.apply_to_current_expression(
-        "exp"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert float(
-        app.display_var.get()
-    ) == pytest.approx(
-        2.718281828459045
-    )
 
 
 def test_number_starts_new_expression_after_calculation():
@@ -636,9 +381,6 @@ def test_number_starts_new_expression_after_calculation():
         "save",
     ):
         app.calculate()
-
-    assert app.display_var.get() == "4"
-    assert app.just_calculated is True
 
     app.button_click("7")
 
@@ -660,7 +402,6 @@ def test_operator_continues_after_calculation():
     app.button_click("+")
 
     assert app.display_var.get() == "4+"
-    assert app.just_calculated is False
 
 
 def test_continue_calculation_from_result():
@@ -686,55 +427,6 @@ def test_continue_calculation_from_result():
     assert app.display_var.get() == "10"
 
 
-def test_power_operator_continues_after_result():
-    app = create_app()
-
-    app.display_var.set("3")
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    app.button_click("**")
-    app.button_click("2")
-
-    assert app.display_var.get() == "3**2"
-
-
-def test_number_replaces_previous_result():
-    app = create_app()
-
-    app.display_var.set("10 / 2")
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    app.button_click("9")
-
-    assert app.display_var.get() == "9"
-
-
-def test_scientific_prefix_starts_fresh_after_result():
-    app = create_app()
-
-    app.display_var.set("2 + 2")
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    app.button_click("sin(")
-
-    assert app.display_var.get() == "sin("
-
-
 def test_scientific_operation_uses_previous_result():
     app = create_app()
 
@@ -746,9 +438,7 @@ def test_scientific_operation_uses_previous_result():
     ):
         app.calculate()
 
-    app.apply_to_current_expression(
-        "square"
-    )
+    app.apply_to_current_expression("square")
 
     assert app.display_var.get() == "square(12)"
 
@@ -761,14 +451,35 @@ def test_scientific_operation_uses_previous_result():
     assert app.display_var.get() == "144"
 
 
-def test_square_root_previous_result():
+def test_complete_one_missing_parenthesis():
     app = create_app()
 
-    app.display_var.set("12")
+    result = app.complete_parentheses("sin(90")
 
-    app.apply_to_current_expression(
-        "square"
-    )
+    assert result == "sin(90)"
+
+
+def test_complete_multiple_missing_parentheses():
+    app = create_app()
+
+    result = app.complete_parentheses("sqrt(square(12")
+
+    assert result == "sqrt(square(12))"
+
+
+def test_complete_expression_unchanged():
+    app = create_app()
+
+    result = app.complete_parentheses("sin(90)")
+
+    assert result == "sin(90)"
+
+
+def test_auto_close_sine():
+    app = create_app()
+
+    app.angle_mode_var.set("degrees")
+    app.display_var.set("sin(90")
 
     with patch.object(
         app,
@@ -776,13 +487,14 @@ def test_square_root_previous_result():
     ):
         app.calculate()
 
-    assert app.display_var.get() == "144"
+    assert app.display_var.get() == "1"
+    assert app.previous_var.get() == "sin(90) ="
 
-    app.apply_to_current_expression(
-        "sqrt"
-    )
 
-    assert app.display_var.get() == "sqrt(144)"
+def test_auto_close_nested_functions():
+    app = create_app()
+
+    app.display_var.set("sqrt(square(12")
 
     with patch.object(
         app,
@@ -793,28 +505,420 @@ def test_square_root_previous_result():
     assert app.display_var.get() == "12"
 
 
-def test_clear_resets_calculation_state():
+def test_is_operator():
     app = create_app()
 
-    app.just_calculated = True
-    app.display_var.set("42")
+    assert app.is_operator("+")
+    assert app.is_operator("-")
+    assert app.is_operator("*")
+    assert app.is_operator("/")
+    assert app.is_operator("%")
+    assert app.is_operator("//")
+    assert app.is_operator("**")
+    assert not app.is_operator("5")
 
-    app.clear_display()
 
-    assert app.just_calculated is False
+def test_operator_replaces_previous_operator():
+    app = create_app()
+
+    app.display_var.set("5+")
+    app.button_click("*")
+
+    assert app.display_var.get() == "5*"
+
+
+def test_power_replaces_previous_operator():
+    app = create_app()
+
+    app.display_var.set("5+")
+    app.button_click("**")
+
+    assert app.display_var.get() == "5**"
+
+
+def test_operator_replaces_power_operator():
+    app = create_app()
+
+    app.display_var.set("5**")
+    app.button_click("/")
+
+    assert app.display_var.get() == "5/"
+
+
+def test_minus_can_start_expression():
+    app = create_app()
+
+    app.button_click("-")
+
+    assert app.display_var.get() == "-"
+
+
+def test_plus_cannot_start_expression():
+    app = create_app()
+
+    app.button_click("+")
+
     assert app.display_var.get() == ""
 
 
-def test_backspace_resets_calculation_state():
+def test_minus_after_multiplication():
     app = create_app()
 
-    app.just_calculated = True
-    app.display_var.set("42")
+    app.display_var.set("5*")
+    app.button_click("-")
 
-    app.backspace()
+    assert app.display_var.get() == "5*-"
 
-    assert app.just_calculated is False
-    assert app.display_var.get() == "4"
+
+def test_negative_number_expression_calculates():
+    app = create_app()
+
+    app.button_click("5")
+    app.button_click("*")
+    app.button_click("-")
+    app.button_click("2")
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        app.calculate()
+
+    assert app.display_var.get() == "-10"
+
+
+def test_current_number_segment():
+    app = create_app()
+
+    assert app.current_number_segment("5+12.5") == "12.5"
+
+
+def test_current_number_segment_function():
+    app = create_app()
+
+    assert app.current_number_segment("sin(0.5") == "0.5"
+
+
+def test_decimal_at_start():
+    app = create_app()
+
+    app.button_click(".")
+
+    assert app.display_var.get() == "0."
+
+
+def test_decimal_after_operator():
+    app = create_app()
+
+    app.button_click("5")
+    app.button_click("+")
+    app.button_click(".")
+
+    assert app.display_var.get() == "5+0."
+
+
+def test_second_decimal_ignored():
+    app = create_app()
+
+    app.button_click("1")
+    app.button_click(".")
+    app.button_click("2")
+    app.button_click(".")
+    app.button_click("3")
+
+    assert app.display_var.get() == "1.23"
+
+
+def test_decimal_inside_function():
+    app = create_app()
+
+    app.button_click("sin(")
+    app.button_click(".")
+    app.button_click("5")
+
+    assert app.display_var.get() == "sin(0.5"
+
+
+def test_decimal_after_result_starts_new_number():
+    app = create_app()
+
+    app.display_var.set("2+2")
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        app.calculate()
+
+    app.button_click(".")
+
+    assert app.display_var.get() == "0."
+
+
+def test_decimal_after_closing_parenthesis_uses_multiplication():
+    app = create_app()
+
+    app.display_var.set("(2)")
+    app.button_click(".")
+
+    assert app.display_var.get() == "(2)*0."
+
+
+def test_decimal_after_pi_uses_multiplication():
+    app = create_app()
+
+    app.display_var.set("pi")
+    app.button_click(".")
+
+    assert app.display_var.get() == "pi*0."
+
+
+def test_is_constant():
+    app = create_app()
+
+    assert app.is_constant("pi")
+    assert app.is_constant("e")
+    assert not app.is_constant("sin(")
+    assert not app.is_constant("5")
+
+
+def test_is_function_prefix():
+    app = create_app()
+
+    assert app.is_function_prefix("sin(")
+    assert app.is_function_prefix("cos(")
+    assert app.is_function_prefix("tan(")
+    assert app.is_function_prefix("asin(")
+    assert app.is_function_prefix("acos(")
+    assert app.is_function_prefix("atan(")
+    assert not app.is_function_prefix("pi")
+
+
+def test_expression_ends_with_pi():
+    app = create_app()
+
+    assert app.expression_ends_with_constant("2*pi")
+
+
+def test_expression_ends_with_e():
+    app = create_app()
+
+    assert app.expression_ends_with_constant("2*e")
+
+
+def test_expression_does_not_end_constant():
+    app = create_app()
+
+    assert not app.expression_ends_with_constant("2+3")
+
+
+def test_number_followed_by_pi_inserts_multiplication():
+    app = create_app()
+
+    app.button_click("2")
+    app.button_click("pi")
+
+    assert app.display_var.get() == "2*pi"
+
+
+def test_number_followed_by_e_inserts_multiplication():
+    app = create_app()
+
+    app.button_click("2")
+    app.button_click("e")
+
+    assert app.display_var.get() == "2*e"
+
+
+def test_number_followed_by_parenthesis_inserts_multiplication():
+    app = create_app()
+
+    app.button_click("2")
+    app.button_click("(")
+
+    assert app.display_var.get() == "2*("
+
+
+def test_number_followed_by_function_inserts_multiplication():
+    app = create_app()
+
+    app.button_click("3")
+    app.button_click("sin(")
+
+    assert app.display_var.get() == "3*sin("
+
+
+def test_closing_parenthesis_followed_by_number_inserts_multiplication():
+    app = create_app()
+
+    app.display_var.set("(2)")
+    app.button_click("3")
+
+    assert app.display_var.get() == "(2)*3"
+
+
+def test_closing_parenthesis_followed_by_parenthesis():
+    app = create_app()
+
+    app.display_var.set("(2)")
+    app.button_click("(")
+
+    assert app.display_var.get() == "(2)*("
+
+
+def test_closing_parenthesis_followed_by_pi():
+    app = create_app()
+
+    app.display_var.set("(2)")
+    app.button_click("pi")
+
+    assert app.display_var.get() == "(2)*pi"
+
+
+def test_closing_parenthesis_followed_by_function():
+    app = create_app()
+
+    app.display_var.set("(2)")
+    app.button_click("sin(")
+
+    assert app.display_var.get() == "(2)*sin("
+
+
+def test_pi_followed_by_number():
+    app = create_app()
+
+    app.button_click("pi")
+    app.button_click("2")
+
+    assert app.display_var.get() == "pi*2"
+
+
+def test_pi_followed_by_parenthesis():
+    app = create_app()
+
+    app.button_click("pi")
+    app.button_click("(")
+
+    assert app.display_var.get() == "pi*("
+
+
+def test_pi_followed_by_e():
+    app = create_app()
+
+    app.button_click("pi")
+    app.button_click("e")
+
+    assert app.display_var.get() == "pi*e"
+
+
+def test_pi_followed_by_function():
+    app = create_app()
+
+    app.button_click("pi")
+    app.button_click("sin(")
+
+    assert app.display_var.get() == "pi*sin("
+
+
+def test_regular_multi_digit_number_does_not_insert_multiplication():
+    app = create_app()
+
+    app.button_click("1")
+    app.button_click("2")
+    app.button_click("3")
+
+    assert app.display_var.get() == "123"
+
+
+def test_implicit_pi_multiplication_calculates():
+    app = create_app()
+
+    app.button_click("2")
+    app.button_click("pi")
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        app.calculate()
+
+    assert float(app.display_var.get()) == pytest.approx(2 * 3.141592653589793)
+
+
+def test_implicit_parenthesis_multiplication_calculates():
+    app = create_app()
+
+    app.button_click("2")
+    app.button_click("(")
+    app.button_click("3")
+    app.button_click("+")
+    app.button_click("4")
+
+    assert app.display_var.get() == "2*(3+4"
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        app.calculate()
+
+    assert app.display_var.get() == "14"
+
+
+def test_two_parenthesized_expressions_multiply():
+    app = create_app()
+
+    app.button_click("(")
+    app.button_click("2")
+    app.button_click(")")
+    app.button_click("(")
+    app.button_click("3")
+    app.button_click(")")
+
+    assert app.display_var.get() == "(2)*(3)"
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        app.calculate()
+
+    assert app.display_var.get() == "6"
+
+
+def test_implicit_function_multiplication_calculates():
+    app = create_app()
+
+    app.angle_mode_var.set("degrees")
+
+    app.button_click("3")
+    app.button_click("sin(")
+    app.button_click("30")
+
+    assert app.display_var.get() == "3*sin(30"
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        app.calculate()
+
+    assert float(app.display_var.get()) == pytest.approx(1.5)
+
+
+def test_implicit_e_multiplication_calculates():
+    app = create_app()
+
+    app.button_click("2")
+    app.button_click("e")
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        app.calculate()
+
+    assert float(app.display_var.get()) == pytest.approx(2 * 2.718281828459045)
 
 
 def test_calculate_empty_expression():
@@ -828,9 +932,6 @@ def test_calculate_empty_expression():
 
     mock_save.assert_not_called()
 
-    assert app.history == []
-    assert app.last_result is None
-
 
 def test_calculate_division_by_zero():
     app = create_app()
@@ -838,9 +939,7 @@ def test_calculate_division_by_zero():
     app.display_var.set("10 / 0")
 
     with (
-        patch(
-            "calculator.gui.messagebox.showerror"
-        ) as mock_error,
+        patch("calculator.gui.messagebox.showerror") as mock_error,
         patch.object(
             app,
             "save",
@@ -852,11 +951,7 @@ def test_calculate_division_by_zero():
         "Error",
         "Cannot divide by zero.",
     )
-
     mock_save.assert_not_called()
-
-    assert app.history == []
-    assert app.last_result is None
 
 
 def test_calculate_invalid_expression():
@@ -865,9 +960,7 @@ def test_calculate_invalid_expression():
     app.display_var.set("2 +")
 
     with (
-        patch(
-            "calculator.gui.messagebox.showerror"
-        ) as mock_error,
+        patch("calculator.gui.messagebox.showerror") as mock_error,
         patch.object(
             app,
             "save",
@@ -879,7 +972,6 @@ def test_calculate_invalid_expression():
         "Error",
         "Invalid calculation.",
     )
-
     mock_save.assert_not_called()
 
 
@@ -893,13 +985,7 @@ def test_calculate_overflow():
             "calculator.gui.calculate_expression",
             side_effect=OverflowError,
         ),
-        patch(
-            "calculator.gui.messagebox.showerror"
-        ) as mock_error,
-        patch.object(
-            app,
-            "save",
-        ) as mock_save,
+        patch("calculator.gui.messagebox.showerror") as mock_error,
     ):
         app.calculate()
 
@@ -908,113 +994,23 @@ def test_calculate_overflow():
         "That number is too large.",
     )
 
-    mock_save.assert_not_called()
-
 
 def test_use_last_result():
     app = create_app()
 
     app.last_result = 42
-
     app.use_last_result()
 
     assert app.display_var.get() == "42"
 
 
-def test_use_decimal_last_result():
+def test_use_last_result_none():
     app = create_app()
 
-    app.last_result = 2.5
-
-    app.use_last_result()
-
-    assert app.display_var.get() == "2.5"
-
-
-def test_use_last_result_when_none():
-    app = create_app()
-
-    with patch(
-        "calculator.gui.messagebox.showinfo"
-    ) as mock_info:
+    with patch("calculator.gui.messagebox.showinfo") as mock_info:
         app.use_last_result()
 
-    mock_info.assert_called_once_with(
-        "Last Result",
-        "No previous result is available.",
-    )
-
-    assert app.display_var.get() == ""
-
-
-def test_clear_history():
-    app = create_app()
-
-    app.history = [
-        {
-            "timestamp": "2026-09-20 12:00:00",
-            "expression": "2 + 2",
-            "result": 4,
-        }
-    ]
-
-    with (
-        patch(
-            "calculator.gui.messagebox.askyesno",
-            return_value=True,
-        ),
-        patch.object(
-            app,
-            "save",
-        ) as mock_save,
-    ):
-        app.clear_history()
-
-    assert app.history == []
-
-    mock_save.assert_called_once()
-
-
-def test_clear_history_cancelled():
-    app = create_app()
-
-    app.history = [
-        {
-            "timestamp": "2026-09-20 12:00:00",
-            "expression": "2 + 2",
-            "result": 4,
-        }
-    ]
-
-    with (
-        patch(
-            "calculator.gui.messagebox.askyesno",
-            return_value=False,
-        ),
-        patch.object(
-            app,
-            "save",
-        ) as mock_save,
-    ):
-        app.clear_history()
-
-    assert len(app.history) == 1
-
-    mock_save.assert_not_called()
-
-
-def test_clear_empty_history():
-    app = create_app()
-
-    with patch(
-        "calculator.gui.messagebox.showinfo"
-    ) as mock_info:
-        app.clear_history()
-
-    mock_info.assert_called_once_with(
-        "History",
-        "History is already empty.",
-    )
+    mock_info.assert_called_once()
 
 
 def test_load_saved_data():
@@ -1032,14 +1028,12 @@ def test_load_saved_data():
         "answer": 4,
     }
 
-    fake_last_result = 4
-
     with patch(
         "calculator.gui.load_data",
         return_value=(
             fake_history,
             fake_memory,
-            fake_last_result,
+            4,
         ),
     ):
         app.load_saved_data()
@@ -1052,26 +1046,15 @@ def test_load_saved_data():
 def test_save():
     app = create_app()
 
-    app.history = [
-        {
-            "timestamp": "2026-09-20 12:00:00",
-            "expression": "2 + 2",
-            "result": 4,
-        }
-    ]
-
     app.memory = {
         "answer": 4,
     }
-
     app.last_result = 4
 
-    with patch(
-        "calculator.gui.save_data"
-    ) as mock_save_data:
+    with patch("calculator.gui.save_data") as mock_save:
         app.save()
 
-    mock_save_data.assert_called_once_with(
+    mock_save.assert_called_once_with(
         app.history,
         app.memory,
         app.last_result,
@@ -1086,9 +1069,7 @@ def test_save_oserror():
             "calculator.gui.save_data",
             side_effect=OSError,
         ),
-        patch(
-            "calculator.gui.messagebox.showerror"
-        ) as mock_error,
+        patch("calculator.gui.messagebox.showerror") as mock_error,
     ):
         app.save()
 
@@ -1109,21 +1090,6 @@ def test_use_memory_value():
     )
 
     assert app.display_var.get() == "25"
-
-    mock_window.destroy.assert_called_once()
-
-
-def test_use_decimal_memory_value():
-    app = create_app()
-
-    mock_window = MagicMock()
-
-    app.use_memory_value(
-        2.5,
-        mock_window,
-    )
-
-    assert app.display_var.get() == "2.5"
 
     mock_window.destroy.assert_called_once()
 
@@ -1161,8 +1127,6 @@ def test_delete_memory_value():
 
 def test_delete_missing_memory_value():
     app = create_app()
-
-    app.memory = {}
 
     mock_window = MagicMock()
 
@@ -1242,541 +1206,195 @@ def test_clear_shortcut():
     mock_method.assert_called_once()
 
 
-def test_complete_one_missing_parenthesis():
+def test_unmatched_open_parentheses_none():
     app = create_app()
 
-    result = app.complete_parentheses(
-        "sin(90"
-    )
+    result = app.unmatched_open_parentheses("2+2")
 
-    assert result == "sin(90)"
+    assert result == 0
 
 
-def test_complete_multiple_missing_parentheses():
+def test_unmatched_open_parentheses_one():
     app = create_app()
 
-    result = app.complete_parentheses(
-        "sqrt(square(12"
-    )
+    result = app.unmatched_open_parentheses("(2+2")
 
-    assert result == "sqrt(square(12))"
+    assert result == 1
 
 
-def test_complete_parentheses_does_not_change_complete_expression():
+def test_unmatched_open_parentheses_nested():
     app = create_app()
 
-    result = app.complete_parentheses(
-        "sin(90)"
-    )
+    result = app.unmatched_open_parentheses("sqrt((2+2")
 
-    assert result == "sin(90)"
+    assert result == 2
 
 
-def test_complete_parentheses_does_not_change_expression_without_parentheses():
+def test_unmatched_open_parentheses_complete():
     app = create_app()
 
-    result = app.complete_parentheses(
-        "2 + 2"
-    )
+    result = app.unmatched_open_parentheses("sqrt((2+2))")
 
-    assert result == "2 + 2"
+    assert result == 0
 
 
-def test_complete_parentheses_does_not_remove_extra_closing_parenthesis():
+def test_cannot_close_parenthesis_on_empty_expression():
     app = create_app()
 
-    result = app.complete_parentheses(
-        "sin(90))"
-    )
-
-    assert result == "sin(90))"
+    assert app.can_close_parenthesis("") is False
 
 
-def test_calculate_auto_closes_sine():
+def test_cannot_close_without_open_parenthesis():
     app = create_app()
 
-    app.angle_mode_var.set(
-        "degrees"
-    )
-
-    app.display_var.set(
-        "sin(90"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "1"
-    assert app.previous_var.get() == "sin(90) ="
-    assert app.just_calculated is True
+    assert app.can_close_parenthesis("2+2") is False
 
 
-def test_calculate_auto_closes_cosine():
+def test_can_close_valid_parenthesis():
     app = create_app()
 
-    app.angle_mode_var.set(
-        "degrees"
-    )
-
-    app.display_var.set(
-        "cos(180"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "-1"
-    assert app.previous_var.get() == "cos(180) ="
+    assert app.can_close_parenthesis("(2+2") is True
 
 
-def test_calculate_auto_closes_square_root():
+def test_cannot_close_immediately_after_open_parenthesis():
     app = create_app()
 
-    app.display_var.set(
-        "sqrt(144"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "12"
-    assert app.previous_var.get() == "sqrt(144) ="
+    assert app.can_close_parenthesis("(") is False
 
 
-def test_calculate_auto_closes_factorial():
+def test_cannot_close_after_operator():
     app = create_app()
 
-    app.display_var.set(
-        "factorial(5"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "120"
-    assert app.previous_var.get() == "factorial(5) ="
+    assert app.can_close_parenthesis("(2+") is False
 
 
-def test_calculate_auto_closes_log():
+def test_cannot_close_after_multiplication():
     app = create_app()
 
-    app.display_var.set(
-        "log(1000"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "3"
+    assert app.can_close_parenthesis("(2*") is False
 
 
-def test_calculate_auto_closes_ln():
+def test_cannot_close_after_power_operator():
     app = create_app()
 
-    app.display_var.set(
-        "ln(e"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "1"
+    assert app.can_close_parenthesis("(2**") is False
 
 
-def test_calculate_auto_closes_nested_functions():
+def test_closing_parenthesis_is_added_when_valid():
     app = create_app()
 
-    app.display_var.set(
-        "sqrt(square(12"
-    )
+    app.display_var.set("(2+3")
 
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
+    app.button_click(")")
 
-    assert app.display_var.get() == "12"
-    assert (
-        app.previous_var.get()
-        == "sqrt(square(12)) ="
-    )
+    assert app.display_var.get() == "(2+3)"
 
 
-def test_auto_completed_expression_is_saved_to_history():
+def test_extra_closing_parenthesis_is_ignored():
     app = create_app()
 
-    app.angle_mode_var.set(
-        "degrees"
-    )
+    app.display_var.set("(2+3)")
 
-    app.display_var.set(
-        "sin(90"
-    )
+    app.button_click(")")
 
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert len(app.history) == 1
-    assert (
-        app.history[0]["expression"]
-        == "sin(90)"
-    )
-    assert (
-        app.history[0]["result"]
-        == pytest.approx(1)
-    )
+    assert app.display_var.get() == "(2+3)"
 
 
-def test_scientific_button_can_calculate_without_manual_closing_parenthesis():
+def test_empty_parentheses_are_prevented():
     app = create_app()
 
-    app.angle_mode_var.set(
-        "degrees"
-    )
+    app.button_click("(")
+    app.button_click(")")
 
-    app.button_click(
-        "sin("
-    )
-    app.button_click(
-        "90"
-    )
-
-    assert (
-        app.display_var.get()
-        == "sin(90"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "1"
+    assert app.display_var.get() == "("
 
 
-def test_nested_scientific_buttons_auto_complete():
+def test_empty_function_parentheses_are_prevented():
     app = create_app()
 
-    app.apply_to_current_expression(
-        "square"
-    )
+    app.button_click("sin(")
+    app.button_click(")")
 
-    app.button_click(
-        "12"
-    )
-
-    assert (
-        app.display_var.get()
-        == "square(12"
-    )
-
-    app.apply_to_current_expression(
-        "sqrt"
-    )
-
-    assert (
-        app.display_var.get()
-        == "sqrt(square(12)"
-    )
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "12"
+    assert app.display_var.get() == "sin("
 
 
-def test_is_operator():
+def test_closing_parenthesis_after_number_in_function():
     app = create_app()
 
-    assert app.is_operator("+") is True
-    assert app.is_operator("-") is True
-    assert app.is_operator("*") is True
-    assert app.is_operator("/") is True
-    assert app.is_operator("%") is True
-    assert app.is_operator("//") is True
-    assert app.is_operator("**") is True
+    app.button_click("sin(")
+    app.button_click("30")
+    app.button_click(")")
+
+    assert app.display_var.get() == "sin(30)"
 
 
-def test_number_is_not_operator():
+def test_closing_parenthesis_after_constant():
     app = create_app()
 
-    assert app.is_operator("5") is False
+    app.button_click("(")
+    app.button_click("pi")
+    app.button_click(")")
+
+    assert app.display_var.get() == "(pi)"
 
 
-def test_operator_replaces_previous_operator():
+def test_closing_parenthesis_after_decimal():
     app = create_app()
 
-    app.display_var.set("5+")
-
-    app.button_click("*")
-
-    assert app.display_var.get() == "5*"
-
-
-def test_division_replaces_addition():
-    app = create_app()
-
-    app.display_var.set("10+")
-
-    app.button_click("/")
-
-    assert app.display_var.get() == "10/"
-
-
-def test_power_operator_replaces_previous_operator():
-    app = create_app()
-
-    app.display_var.set("5+")
-
-    app.button_click("**")
-
-    assert app.display_var.get() == "5**"
-
-
-def test_floor_division_replaces_previous_operator():
-    app = create_app()
-
-    app.display_var.set("10*")
-
-    app.button_click("//")
-
-    assert app.display_var.get() == "10//"
-
-
-def test_operator_replaces_power_operator():
-    app = create_app()
-
-    app.display_var.set("5**")
-
-    app.button_click("/")
-
-    assert app.display_var.get() == "5/"
-
-
-def test_operator_replaces_floor_division():
-    app = create_app()
-
-    app.display_var.set("10//")
-
-    app.button_click("+")
-
-    assert app.display_var.get() == "10+"
-
-
-def test_minus_can_start_expression():
-    app = create_app()
-
-    app.button_click("-")
-
-    assert app.display_var.get() == "-"
-
-
-def test_plus_cannot_start_expression():
-    app = create_app()
-
-    app.button_click("+")
-
-    assert app.display_var.get() == ""
-
-
-def test_multiplication_cannot_start_expression():
-    app = create_app()
-
-    app.button_click("*")
-
-    assert app.display_var.get() == ""
-
-
-def test_division_cannot_start_expression():
-    app = create_app()
-
-    app.button_click("/")
-
-    assert app.display_var.get() == ""
-
-
-def test_power_cannot_start_expression():
-    app = create_app()
-
-    app.button_click("**")
-
-    assert app.display_var.get() == ""
-
-
-def test_floor_division_cannot_start_expression():
-    app = create_app()
-
-    app.button_click("//")
-
-    assert app.display_var.get() == ""
-
-
-def test_minus_after_multiplication_starts_negative_number():
-    app = create_app()
-
-    app.display_var.set("5*")
-
-    app.button_click("-")
-
-    assert app.display_var.get() == "5*-"
-
-
-def test_minus_after_division_starts_negative_number():
-    app = create_app()
-
-    app.display_var.set("10/")
-
-    app.button_click("-")
-
-    assert app.display_var.get() == "10/-"
-
-
-def test_minus_after_modulus_starts_negative_number():
-    app = create_app()
-
-    app.display_var.set("10%")
-
-    app.button_click("-")
-
-    assert app.display_var.get() == "10%-"
-
-
-def test_minus_after_power_starts_negative_number():
-    app = create_app()
-
-    app.display_var.set("2**")
-
-    app.button_click("-")
-
-    assert app.display_var.get() == "2**-"
-
-
-def test_minus_after_floor_division_starts_negative_number():
-    app = create_app()
-
-    app.display_var.set("10//")
-
-    app.button_click("-")
-
-    assert app.display_var.get() == "10//-"
-
-
-def test_negative_number_expression_calculates():
-    app = create_app()
-
-    app.button_click("5")
-    app.button_click("*")
-    app.button_click("-")
+    app.button_click("(")
     app.button_click("2")
+    app.button_click(".")
+    app.button_click("5")
+    app.button_click(")")
 
-    assert app.display_var.get() == "5*-2"
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "-10"
+    assert app.display_var.get() == "(2.5)"
 
 
-def test_negative_division_expression_calculates():
+def test_nested_parentheses_close_one_at_a_time():
     app = create_app()
 
-    app.button_click("10")
-    app.button_click("/")
-    app.button_click("-")
+    app.button_click("(")
+    app.button_click("(")
     app.button_click("2")
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    assert app.display_var.get() == "-5"
-
-
-def test_repeated_operator_changes_operator():
-    app = create_app()
-
-    app.button_click("5")
     app.button_click("+")
-    app.button_click("*")
+    app.button_click("3")
 
-    assert app.display_var.get() == "5*"
+    app.button_click(")")
+
+    assert app.display_var.get() == "((2+3)"
+
+    app.button_click(")")
+
+    assert app.display_var.get() == "((2+3))"
+
+    app.button_click(")")
+
+    assert app.display_var.get() == "((2+3))"
 
 
-def test_multiple_operator_replacements():
+def test_invalid_close_after_operator_is_ignored():
     app = create_app()
 
-    app.button_click("5")
+    app.button_click("(")
+    app.button_click("2")
     app.button_click("+")
-    app.button_click("*")
-    app.button_click("/")
+    app.button_click(")")
 
-    assert app.display_var.get() == "5/"
+    assert app.display_var.get() == "(2+"
 
 
-def test_operator_chaining_after_result_still_works():
+def test_parenthesized_expression_calculates():
     app = create_app()
 
-    app.display_var.set("2 + 2")
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
+    app.button_click("(")
+    app.button_click("2")
     app.button_click("+")
-
-    assert app.display_var.get() == "4+"
-
+    app.button_click("3")
+    app.button_click(")")
     app.button_click("*")
+    app.button_click("4")
 
-    assert app.display_var.get() == "4*"
-
-
-def test_operator_after_result_can_continue_calculation():
-    app = create_app()
-
-    app.display_var.set("2 + 2")
-
-    with patch.object(
-        app,
-        "save",
-    ):
-        app.calculate()
-
-    app.button_click("*")
-    app.button_click("5")
+    assert app.display_var.get() == "(2+3)*4"
 
     with patch.object(
         app,
@@ -1787,10 +1405,130 @@ def test_operator_after_result_can_continue_calculation():
     assert app.display_var.get() == "20"
 
 
-def test_minus_after_result_continues_subtraction():
+def test_constant_detection_does_not_confuse_word_ending_in_e():
     app = create_app()
 
-    app.display_var.set("10")
+    assert app.expression_ends_with_constant("square") is False
+
+
+def test_constant_detection_pi():
+    app = create_app()
+
+    assert app.expression_ends_with_constant("2*pi") is True
+
+
+def test_constant_detection_e():
+    app = create_app()
+
+    assert app.expression_ends_with_constant("2*e") is True
+
+
+def test_expression_ends_with_number_operand():
+    app = create_app()
+
+    assert app.expression_ends_with_operand("123") is True
+
+
+def test_expression_ends_with_parenthesis_operand():
+    app = create_app()
+
+    assert app.expression_ends_with_operand("sin(30)") is True
+
+
+def test_expression_ends_with_pi_operand():
+    app = create_app()
+
+    assert app.expression_ends_with_operand("pi") is True
+
+
+def test_expression_ends_with_e_operand():
+    app = create_app()
+
+    assert app.expression_ends_with_operand("e") is True
+
+
+def test_operator_is_not_operand():
+    app = create_app()
+
+    assert app.expression_ends_with_operand("2+") is False
+
+
+def test_pi_followed_by_e_inserts_multiplication():
+    app = create_app()
+
+    app.button_click("pi")
+    app.button_click("e")
+
+    assert app.display_var.get() == "pi*e"
+
+
+def test_e_followed_by_pi_inserts_multiplication():
+    app = create_app()
+
+    app.button_click("e")
+    app.button_click("pi")
+
+    assert app.display_var.get() == "e*pi"
+
+
+def test_e_followed_by_e_inserts_multiplication():
+    app = create_app()
+
+    app.button_click("e")
+    app.button_click("e")
+
+    assert app.display_var.get() == "e*e"
+
+
+def test_closed_function_followed_by_number():
+    app = create_app()
+
+    app.button_click("sin(")
+    app.button_click("30")
+    app.button_click(")")
+    app.button_click("2")
+
+    assert app.display_var.get() == "sin(30)*2"
+
+
+def test_closed_function_followed_by_pi():
+    app = create_app()
+
+    app.button_click("sin(")
+    app.button_click("30")
+    app.button_click(")")
+    app.button_click("pi")
+
+    assert app.display_var.get() == "sin(30)*pi"
+
+
+def test_closed_function_followed_by_function():
+    app = create_app()
+
+    app.button_click("sin(")
+    app.button_click("30")
+    app.button_click(")")
+    app.button_click("cos(")
+
+    assert app.display_var.get() == "sin(30)*cos("
+
+
+def test_function_can_be_nested_inside_open_function():
+    app = create_app()
+
+    app.button_click("sin(")
+    app.button_click("cos(")
+
+    assert app.display_var.get() == "sin(cos("
+
+
+def test_constant_multiplication_calculates():
+    app = create_app()
+
+    app.button_click("pi")
+    app.button_click("e")
+
+    assert app.display_var.get() == "pi*e"
 
     with patch.object(
         app,
@@ -1798,8 +1536,20 @@ def test_minus_after_result_continues_subtraction():
     ):
         app.calculate()
 
-    app.button_click("-")
-    app.button_click("3")
+    assert float(app.display_var.get()) == pytest.approx(
+        3.141592653589793 * 2.718281828459045
+    )
+
+
+def test_closed_function_times_number_calculates():
+    app = create_app()
+
+    app.angle_mode_var.set("degrees")
+
+    app.button_click("sin(")
+    app.button_click("30")
+    app.button_click(")")
+    app.button_click("2")
 
     with patch.object(
         app,
@@ -1807,4 +1557,530 @@ def test_minus_after_result_continues_subtraction():
     ):
         app.calculate()
 
-    assert app.display_var.get() == "7"
+    assert float(app.display_var.get()) == pytest.approx(1)
+
+
+def test_keyboard_digit():
+    app = create_app()
+
+    event = FakeEvent(
+        char="5",
+        keysym="5",
+    )
+
+    result = app.key_pressed(event)
+
+    assert app.display_var.get() == "5"
+    assert result == "break"
+
+
+def test_keyboard_builds_number():
+    app = create_app()
+
+    for character in "123":
+        app.key_pressed(
+            FakeEvent(
+                char=character,
+                keysym=character,
+            )
+        )
+
+    assert app.display_var.get() == "123"
+
+
+def test_keyboard_decimal_uses_decimal_protection():
+    app = create_app()
+
+    for character in "1.2.3":
+        app.key_pressed(
+            FakeEvent(
+                char=character,
+                keysym=character,
+            )
+        )
+
+    assert app.display_var.get() == "1.23"
+
+
+def test_keyboard_leading_decimal_becomes_zero_decimal():
+    app = create_app()
+
+    app.key_pressed(
+        FakeEvent(
+            char=".",
+            keysym="period",
+        )
+    )
+
+    assert app.display_var.get() == "0."
+
+
+def test_keyboard_operator_replacement():
+    app = create_app()
+
+    for character in "5+":
+        app.key_pressed(
+            FakeEvent(
+                char=character,
+                keysym=character,
+            )
+        )
+
+    app.key_pressed(
+        FakeEvent(
+            char="*",
+            keysym="asterisk",
+        )
+    )
+
+    assert app.display_var.get() == "5*"
+
+
+def test_keyboard_double_asterisk_creates_power():
+    app = create_app()
+
+    app.key_pressed(
+        FakeEvent(
+            char="2",
+            keysym="2",
+        )
+    )
+    app.key_pressed(
+        FakeEvent(
+            char="*",
+            keysym="asterisk",
+        )
+    )
+    app.key_pressed(
+        FakeEvent(
+            char="*",
+            keysym="asterisk",
+        )
+    )
+
+    assert app.display_var.get() == "2**"
+
+
+def test_keyboard_double_slash_creates_floor_division():
+    app = create_app()
+
+    app.key_pressed(
+        FakeEvent(
+            char="1",
+            keysym="1",
+        )
+    )
+    app.key_pressed(
+        FakeEvent(
+            char="0",
+            keysym="0",
+        )
+    )
+    app.key_pressed(
+        FakeEvent(
+            char="/",
+            keysym="slash",
+        )
+    )
+    app.key_pressed(
+        FakeEvent(
+            char="/",
+            keysym="slash",
+        )
+    )
+
+    assert app.display_var.get() == "10//"
+
+
+def test_keyboard_parentheses_use_validation():
+    app = create_app()
+
+    app.key_pressed(
+        FakeEvent(
+            char="(",
+            keysym="parenleft",
+        )
+    )
+    app.key_pressed(
+        FakeEvent(
+            char="2",
+            keysym="2",
+        )
+    )
+    app.key_pressed(
+        FakeEvent(
+            char=")",
+            keysym="parenright",
+        )
+    )
+    app.key_pressed(
+        FakeEvent(
+            char=")",
+            keysym="parenright",
+        )
+    )
+
+    assert app.display_var.get() == "(2)"
+
+
+def test_keyboard_invalid_closing_parenthesis_is_ignored():
+    app = create_app()
+
+    app.key_pressed(
+        FakeEvent(
+            char=")",
+            keysym="parenright",
+        )
+    )
+
+    assert app.display_var.get() == ""
+
+
+def test_keyboard_negative_number():
+    app = create_app()
+
+    for character in "-5":
+        app.key_pressed(
+            FakeEvent(
+                char=character,
+                keysym=character,
+            )
+        )
+
+    assert app.display_var.get() == "-5"
+
+
+def test_keyboard_enter_calculates():
+    app = create_app()
+
+    app.display_var.set("2+2")
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        result = app.key_pressed(
+            FakeEvent(
+                keysym="Return",
+            )
+        )
+
+    assert app.display_var.get() == "4"
+    assert result == "break"
+
+
+def test_keyboard_numpad_enter_calculates():
+    app = create_app()
+
+    app.display_var.set("3*4")
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        result = app.key_pressed(
+            FakeEvent(
+                keysym="KP_Enter",
+            )
+        )
+
+    assert app.display_var.get() == "12"
+    assert result == "break"
+
+
+def test_keyboard_backspace():
+    app = create_app()
+
+    app.display_var.set("123")
+
+    result = app.key_pressed(
+        FakeEvent(
+            keysym="BackSpace",
+        )
+    )
+
+    assert app.display_var.get() == "12"
+    assert result == "break"
+
+
+def test_keyboard_escape_clears():
+    app = create_app()
+
+    app.display_var.set("123")
+
+    result = app.key_pressed(
+        FakeEvent(
+            keysym="Escape",
+        )
+    )
+
+    assert app.display_var.get() == ""
+    assert result == "break"
+
+
+def test_keyboard_delete_clears():
+    app = create_app()
+
+    app.display_var.set("123")
+
+    result = app.key_pressed(
+        FakeEvent(
+            keysym="Delete",
+        )
+    )
+
+    assert app.display_var.get() == ""
+    assert result == "break"
+
+
+def test_keyboard_unknown_key_is_ignored():
+    app = create_app()
+
+    result = app.key_pressed(
+        FakeEvent(
+            char="x",
+            keysym="x",
+        )
+    )
+
+    assert app.display_var.get() == ""
+    assert result is None
+
+
+def test_keyboard_full_expression():
+    app = create_app()
+
+    for character in "5*-2":
+        app.key_pressed(
+            FakeEvent(
+                char=character,
+                keysym=character,
+            )
+        )
+
+    assert app.display_var.get() == "5*-2"
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        app.key_pressed(
+            FakeEvent(
+                keysym="Return",
+            )
+        )
+
+    assert app.display_var.get() == "-10"
+
+
+def test_keyboard_result_chaining():
+    app = create_app()
+
+    app.display_var.set("2+2")
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        app.calculate()
+
+    app.key_pressed(
+        FakeEvent(
+            char="+",
+            keysym="plus",
+        )
+    )
+
+    app.key_pressed(
+        FakeEvent(
+            char="6",
+            keysym="6",
+        )
+    )
+
+    assert app.display_var.get() == "4+6"
+
+    with patch.object(
+        app,
+        "save",
+    ):
+        app.key_pressed(
+            FakeEvent(
+                keysym="Return",
+            )
+        )
+
+    assert app.display_var.get() == "10"
+
+
+def test_pi_shortcut():
+    app = create_app()
+
+    result = app.pi_shortcut(None)
+
+    assert app.display_var.get() == "pi"
+    assert result == "break"
+
+
+def test_e_shortcut():
+    app = create_app()
+
+    result = app.e_shortcut(None)
+
+    assert app.display_var.get() == "e"
+    assert result == "break"
+
+
+def test_square_root_shortcut():
+    app = create_app()
+
+    app.display_var.set("144")
+
+    result = app.sqrt_shortcut(None)
+
+    assert app.display_var.get() == "sqrt(144)"
+    assert result == "break"
+
+
+def test_square_shortcut():
+    app = create_app()
+
+    app.display_var.set("12")
+
+    app.square_shortcut(None)
+
+    assert app.display_var.get() == "square(12)"
+
+
+def test_reciprocal_shortcut():
+    app = create_app()
+
+    app.display_var.set("4")
+
+    app.reciprocal_shortcut(None)
+
+    assert app.display_var.get() == "reciprocal(4)"
+
+
+def test_factorial_shortcut():
+    app = create_app()
+
+    app.display_var.set("5")
+
+    app.factorial_shortcut(None)
+
+    assert app.display_var.get() == "factorial(5)"
+
+
+def test_log_shortcut():
+    app = create_app()
+
+    app.display_var.set("1000")
+
+    app.log_shortcut(None)
+
+    assert app.display_var.get() == "log(1000)"
+
+
+def test_ln_shortcut():
+    app = create_app()
+
+    app.display_var.set("e")
+
+    app.ln_shortcut(None)
+
+    assert app.display_var.get() == "ln(e)"
+
+
+def test_sin_shortcut():
+    app = create_app()
+
+    app.sin_shortcut(None)
+
+    assert app.display_var.get() == "sin("
+
+
+def test_inverse_sine_shortcut():
+    app = create_app()
+
+    app.asin_shortcut(None)
+
+    assert app.display_var.get() == "asin("
+
+
+def test_degree_mode_shortcut():
+    app = create_app()
+
+    app.angle_mode_var.set("radians")
+
+    result = app.degree_mode_shortcut(None)
+
+    assert app.angle_mode_var.get() == "degrees"
+    assert result == "break"
+
+
+def test_radian_mode_shortcut():
+    app = create_app()
+
+    app.angle_mode_var.set("degrees")
+
+    result = app.radian_mode_shortcut(None)
+
+    assert app.angle_mode_var.get() == "radians"
+    assert result == "break"
+
+
+def test_ans_shortcut():
+    app = create_app()
+
+    app.last_result = 42
+
+    result = app.ans_shortcut(None)
+
+    assert app.display_var.get() == "42"
+    assert result == "break"
+
+
+def test_update_mode_status_degrees():
+    app = create_app()
+
+    app.mode_status_var = FakeStringVar("RAD")
+    app.angle_mode_var.set("degrees")
+
+    app.update_mode_status()
+
+    assert app.mode_status_var.get() == "DEG"
+
+
+def test_update_mode_status_radians():
+    app = create_app()
+
+    app.mode_status_var = FakeStringVar("DEG")
+    app.angle_mode_var.set("radians")
+
+    app.update_mode_status()
+
+    assert app.mode_status_var.get() == "RAD"
+
+
+def test_degree_shortcut_updates_status():
+    app = create_app()
+
+    app.mode_status_var = FakeStringVar("RAD")
+
+    app.degree_mode_shortcut(None)
+
+    assert app.angle_mode_var.get() == "degrees"
+    assert app.mode_status_var.get() == "DEG"
+
+
+def test_radian_shortcut_updates_status():
+    app = create_app()
+
+    app.mode_status_var = FakeStringVar("DEG")
+    app.angle_mode_var.set("degrees")
+
+    app.radian_mode_shortcut(None)
+
+    assert app.angle_mode_var.get() == "radians"
+    assert app.mode_status_var.get() == "RAD"

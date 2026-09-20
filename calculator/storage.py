@@ -7,6 +7,7 @@ from calculator.calculator_engine import Number
 
 APP_NAME = "SimpleScientificCalculator"
 
+
 class HistoryEntry(TypedDict):
     timestamp: str
     expression: str
