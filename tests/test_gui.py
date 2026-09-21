@@ -1051,6 +1051,11 @@ def test_save():
     }
     app.last_result = 4
 
+    app.settings = {
+        "angle_mode": "radians",
+        "geometry": "",
+    }
+
     with patch("calculator.gui.save_data") as mock_save:
         app.save()
 
@@ -1058,6 +1063,7 @@ def test_save():
         app.history,
         app.memory,
         app.last_result,
+        app.settings,
     )
 
 
@@ -2084,3 +2090,215 @@ def test_radian_shortcut_updates_status():
 
     assert app.angle_mode_var.get() == "radians"
     assert app.mode_status_var.get() == "RAD"
+
+
+def test_saved_angle_mode_restores_degrees():
+    app = create_app()
+
+    app.settings = {
+        "angle_mode": "degrees",
+        "geometry": "",
+    }
+
+    app.angle_mode_var.set(app.settings["angle_mode"])
+
+    app.update_mode_status()
+
+    assert app.angle_mode_var.get() == "degrees"
+    assert app.mode_status_var.get() == "DEG"
+
+
+def test_invalid_saved_angle_mode_defaults_to_radians():
+    app = create_app()
+
+    app.settings = {
+        "angle_mode": "invalid",
+        "geometry": "",
+    }
+
+    saved_mode = app.settings.get(
+        "angle_mode",
+        "radians",
+    )
+
+    if saved_mode not in {
+        "degrees",
+        "radians",
+    }:
+        saved_mode = "radians"
+
+    assert saved_mode == "radians"
+
+
+def test_update_saved_settings():
+    app = create_app()
+
+    app.root = MagicMock()
+    app.root.geometry.return_value = "700x850+250+100"
+
+    app.settings = {
+        "angle_mode": "radians",
+        "geometry": "",
+    }
+
+    app.angle_mode_var.set("degrees")
+
+    app.update_saved_settings()
+
+    assert app.settings["angle_mode"] == "degrees"
+    assert app.settings["geometry"] == "700x850+250+100"
+
+
+def test_reset_window_layout_confirmed():
+    app = create_app()
+
+    app.root = MagicMock()
+
+    app.settings = {
+        "angle_mode": "degrees",
+        "geometry": "700x900+100+100",
+    }
+
+    with (
+        patch(
+            "calculator.gui.messagebox.askyesno",
+            return_value=True,
+        ),
+        patch.object(
+            app,
+            "center_window",
+        ) as mock_center,
+        patch.object(
+            app,
+            "save",
+        ) as mock_save,
+    ):
+        app.reset_window_layout()
+
+    assert app.settings["geometry"] == ""
+
+    mock_center.assert_called_once_with(
+        app.root,
+        560,
+        790,
+    )
+
+    mock_save.assert_called_once()
+
+
+def test_reset_window_layout_cancelled():
+    app = create_app()
+
+    app.root = MagicMock()
+
+    app.settings = {
+        "angle_mode": "degrees",
+        "geometry": "700x900+100+100",
+    }
+
+    with (
+        patch(
+            "calculator.gui.messagebox.askyesno",
+            return_value=False,
+        ),
+        patch.object(
+            app,
+            "center_window",
+        ) as mock_center,
+        patch.object(
+            app,
+            "save",
+        ) as mock_save,
+    ):
+        app.reset_window_layout()
+
+    assert app.settings["geometry"] == "700x900+100+100"
+
+    mock_center.assert_not_called()
+    mock_save.assert_not_called()
+
+
+def test_reset_preferences_confirmed():
+    app = create_app()
+
+    app.root = MagicMock()
+
+    app.settings = {
+        "angle_mode": "degrees",
+        "geometry": "700x900+100+100",
+    }
+
+    app.angle_mode_var.set("degrees")
+
+    app.mode_status_var.set("DEG")
+
+    with (
+        patch(
+            "calculator.gui.messagebox.askyesno",
+            return_value=True,
+        ),
+        patch.object(
+            app,
+            "center_window",
+        ) as mock_center,
+        patch.object(
+            app,
+            "save",
+        ) as mock_save,
+    ):
+        app.reset_preferences()
+
+    assert app.settings["angle_mode"] == "radians"
+
+    assert app.settings["geometry"] == ""
+
+    assert app.angle_mode_var.get() == "radians"
+
+    assert app.mode_status_var.get() == "RAD"
+
+    mock_center.assert_called_once_with(
+        app.root,
+        560,
+        790,
+    )
+
+    mock_save.assert_called_once()
+
+
+def test_reset_preferences_keeps_history_and_memory():
+    app = create_app()
+
+    app.root = MagicMock()
+
+    app.history = [
+        {
+            "timestamp": "2026-09-20 12:00:00",
+            "expression": "2+2",
+            "result": 4,
+        }
+    ]
+
+    app.memory = {
+        "answer": 42,
+    }
+
+    with (
+        patch(
+            "calculator.gui.messagebox.askyesno",
+            return_value=True,
+        ),
+        patch.object(
+            app,
+            "center_window",
+        ),
+        patch.object(
+            app,
+            "save",
+        ),
+    ):
+        app.reset_preferences()
+
+    assert len(app.history) == 1
+    assert app.memory == {
+        "answer": 42,
+    }

@@ -1,20 +1,12 @@
 # Simple Scientific Calculator
 
-A desktop calculator application built with Python and Tkinter.
+A desktop scientific calculator built with Python and Tkinter.
 
-Simple Scientific Calculator started as a basic command-line learning project and has grown into a structured Python application with a graphical interface, persistent storage, calculation history, named memory values, automated testing, static type checking, linting, code formatting, CI, and Windows executable builds.
-
-Current application version:
-
-```text
-1.0.0
-```
-
----
+The application supports standard arithmetic, scientific functions, keyboard shortcuts, calculation history, named memory values, persistent preferences, and safe expression evaluation using Python's AST module.
 
 ## Features
 
-### Calculator
+### Standard Calculator Operations
 
 - Addition
 - Subtraction
@@ -22,187 +14,427 @@ Current application version:
 - Division
 - Floor division
 - Modulus
-- Exponents
+- Exponentiation
 - Parentheses
-- Operator precedence
-- Decimal calculations
-- Positive and negative numbers
-- Previous-result support
+- Decimal values
+- Negative numbers
 
-Supported operators:
+### Scientific Functions
 
-| Operation | Operator | Example |
-|---|---|---|
-| Addition | `+` | `2 + 2` |
-| Subtraction | `-` | `10 - 3` |
-| Multiplication | `*` | `6 * 7` |
-| Division | `/` | `10 / 4` |
-| Floor division | `//` | `10 // 3` |
-| Modulus | `%` | `10 % 3` |
-| Exponent | `**` | `2 ** 8` |
-| Parentheses | `()` | `(2 + 3) * 4` |
+- `sin`
+- `cos`
+- `tan`
+- `asin`
+- `acos`
+- `atan`
+- Square root
+- Square
+- Reciprocal
+- Factorial
+- Base-10 logarithm
+- Natural logarithm
+- Powers of 10
+- Exponential function
+- π
+- e
 
----
+### Angle Modes
 
-## Safe Expression Evaluation
+The calculator supports:
 
-The calculator does **not** use Python's raw `eval()` function.
+- Radians
+- Degrees
 
-Mathematical expressions are parsed with Python's Abstract Syntax Tree (`ast`) module.
+The active mode is displayed in the status bar.
 
-Only specifically supported numeric operations are evaluated.
+The selected angle mode is remembered when the application is closed.
 
-Expressions involving unsupported Python functionality are rejected, including:
+### Smart Expression Input
 
-- Variable names
-- Function calls
-- Imports
-- Attribute access
-- Lists
-- Dictionaries
-- Boolean expressions
-- Comparisons
-- Strings
-- Unsupported operators
+The calculator includes input handling designed to make expression entry easier and safer.
 
-For example, this is valid:
+Examples include:
 
-```text
-(10 + 5) * 2 ** 3
-```
+- Automatic parenthesis completion
+- Smart closing-parenthesis handling
+- Operator replacement
+- Negative values after operators
+- Decimal input protection
+- Implicit multiplication
+- Constant detection
+- Function detection
+- ANS operand insertion
+- Memory operand insertion
+- Invalid operator-chain cleanup
 
-while arbitrary Python code is not allowed.
-
----
-
-## Graphical Interface
-
-The desktop interface is built with:
+Examples:
 
 ```text
-tkinter
-ttk
+2π
 ```
 
-The GUI includes:
+is automatically entered internally as:
 
-- Calculator button grid
-- Expression display
-- Previous-expression display
-- History viewer
-- Memory viewer
-- Menu bar
-- Keyboard support
-- Error dialogs
-- Application version display
+```text
+2*pi
+```
 
----
+and:
 
-## Calculation History
+```text
+(2)(3)
+```
 
-Successful calculations are stored in a history list.
+is treated as:
 
-Each history entry contains:
+```text
+(2)*(3)
+```
+
+If the previous answer is `42`:
+
+```text
+2
+ANS
+```
+
+becomes:
+
+```text
+2*42
+```
+
+while:
+
+```text
+5+
+ANS
+```
+
+becomes:
+
+```text
+5+42
+```
+
+### Calculation History
+
+The calculator stores calculation history locally.
+
+The History window includes:
 
 - Timestamp
 - Expression
 - Result
+- Scrollable history table
+- Use Result action
+- Double-click result reuse
+- Clear History option
 
-Example:
+Newest calculations are displayed first.
+
+### Memory
+
+Results can be stored under custom names.
+
+The Memory window includes:
+
+- Named values
+- Sorted memory table
+- Use stored value
+- Double-click stored value
+- Delete stored value
+
+Memory values are persisted between application sessions.
+
+### Persistent Preferences
+
+The calculator remembers:
+
+- Angle mode
+- Main window size
+- Main window position
+
+The next time the calculator opens, these preferences are restored automatically.
+
+### Settings
+
+The Settings menu includes:
+
+#### Reset Window Layout
+
+Restores the calculator window to its default size and centered position.
+
+This does not affect:
+
+- Angle mode
+- History
+- Memory
+
+#### Reset Preferences
+
+Restores:
+
+- Radian mode
+- Default window size
+- Default window position
+
+History and memory are preserved.
+
+### Keyboard Support
+
+Normal keyboard input can be used for calculations.
+
+Supported direct input includes:
 
 ```text
-2026-09-20 12:00:00 | 2 + 2 = 4
-2026-09-20 12:01:00 | 10 / 4 = 2.5
+0-9
++
+-
+*
+/
+%
+.
+(
+)
 ```
 
-History persists between application sessions.
-
----
-
-## Named Memory Values
-
-Results can be saved into named memory slots.
-
-For example:
+Typing:
 
 ```text
-tax = 0.08
-answer = 42
-subtotal = 125.5
+**
 ```
 
-Saved values can later be inserted back into the calculator.
+creates exponentiation.
 
-Memory values are also persisted between application sessions.
-
----
-
-## Persistent Data Storage
-
-Application data is stored as JSON.
-
-On Windows, the calculator stores its data under the current user's local application-data directory:
+Typing:
 
 ```text
-%LOCALAPPDATA%\SimpleScientificCalculator\calculator_data.json
+//
 ```
 
-A typical path looks like:
+creates floor division.
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| Enter | Calculate |
+| Numpad Enter | Calculate |
+| Backspace | Delete last character |
+| Escape | Clear display |
+| Delete | Clear display |
+| Ctrl+A | Clear display |
+| Ctrl+L | Clear display |
+| Ctrl+P | Insert π |
+| Ctrl+E | Insert e |
+| Ctrl+R | Square root |
+| Ctrl+Q | Square |
+| Ctrl+I | Reciprocal |
+| Ctrl+F | Factorial |
+| Ctrl+G | Base-10 logarithm |
+| Ctrl+N | Natural logarithm |
+| Ctrl+1 | sin |
+| Ctrl+2 | cos |
+| Ctrl+3 | tan |
+| Ctrl+4 | asin |
+| Ctrl+5 | acos |
+| Ctrl+6 | atan |
+| Ctrl+D | Degree mode |
+| Ctrl+T | Radian mode |
+| Ctrl+Space | Insert previous answer |
+| Ctrl+H | Open History |
+| Ctrl+M | Open Memory |
+| Ctrl+S | Save last result to Memory |
+| F1 | Open Keyboard Shortcuts |
+
+## Safe Expression Evaluation
+
+The calculator does not use unrestricted Python `eval()`.
+
+Expressions are parsed using Python's `ast` module and only approved operations, constants, and scientific functions are evaluated.
+
+Unsupported syntax is rejected.
+
+Examples of rejected input include:
+
+```python
+import os
+```
+
+```python
+__import__("os")
+```
+
+```python
+object.attribute
+```
+
+```python
+[1, 2, 3]
+```
+
+```python
+{"a": 1}
+```
+
+This keeps calculator expressions isolated from arbitrary Python execution.
+
+## Requirements
+
+- Python 3.12 or newer
+- Tkinter
+
+Development tools used by the project include:
+
+- pytest
+- pytest-cov
+- Ruff
+- mypy
+- pre-commit
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/BestJustSteve/Simple_Scientific_Calculator.git
+```
+
+Enter the project directory:
+
+```bash
+cd Simple_Scientific_Calculator
+```
+
+Create a virtual environment:
+
+### Windows
+
+```bash
+python -m venv .venv
+```
+
+Activate it in Git Bash:
+
+```bash
+source .venv/Scripts/activate
+```
+
+Or activate it in PowerShell:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Install the project requirements:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+## Running the Calculator
+
+Run:
+
+```bash
+python main.py
+```
+
+## Running Tests
+
+Run the full test suite:
+
+```bash
+python -m pytest -v
+```
+
+Run tests with coverage:
+
+```bash
+python -m pytest --cov=calculator --cov-report=term-missing
+```
+
+## Code Quality
+
+Run Ruff:
+
+```bash
+python -m ruff check . --fix
+python -m ruff check .
+python -m ruff format .
+```
+
+Run mypy:
+
+```bash
+python -m mypy calculator
+```
+
+Run pre-commit checks:
+
+```bash
+python -m pre_commit run --all-files
+```
+
+A full local verification sequence is:
+
+```bash
+python -m ruff check . --fix
+python -m ruff check .
+python -m ruff format .
+python -m mypy calculator
+python -m pytest -v
+python -m pytest --cov=calculator --cov-report=term-missing
+python -m pre_commit run --all-files
+```
+
+## Persistent Data
+
+Application data is stored in a JSON file.
+
+On Windows, the calculator stores its data under:
 
 ```text
-C:\Users\Username\AppData\Local\SimpleScientificCalculator\calculator_data.json
+%LOCALAPPDATA%\SimpleScientificCalculator\
 ```
 
-This keeps user-generated data outside the application installation directory and allows packaged versions of the program to safely retain history and memory.
+The file is:
 
-The JSON data contains:
+```text
+calculator_data.json
+```
+
+It stores:
+
+- Calculation history
+- Named memory values
+- Last result
+- Angle mode
+- Window geometry
+
+An example structure is:
 
 ```json
 {
     "history": [],
     "memory": {},
-    "last_result": null
+    "last_result": null,
+    "settings": {
+        "angle_mode": "radians",
+        "geometry": "560x790+680+145"
+    }
 }
 ```
 
----
+If the file does not exist, the calculator creates its data automatically.
 
-## Keyboard Controls
-
-The calculator supports normal keyboard input.
-
-### Calculator Keys
-
-| Key | Action |
-|---|---|
-| `0-9` | Enter numbers |
-| `+` | Addition |
-| `-` | Subtraction |
-| `*` | Multiplication |
-| `/` | Division |
-| `%` | Modulus |
-| `(` `)` | Parentheses |
-| `.` | Decimal point |
-| `Enter` | Calculate |
-| `Backspace` | Delete last character |
-| `Escape` | Clear display |
-
-### Shortcuts
-
-| Shortcut | Action |
-|---|---|
-| `Ctrl + H` | Open calculation history |
-| `Ctrl + M` | Open saved memory |
-| `Ctrl + S` | Save the last result to memory |
-| `Ctrl + L` | Clear the display |
-
----
+If saved JSON is missing newer settings fields, default values are used.
 
 ## Project Structure
 
 ```text
-Simple_Calculator/
-│
+Simple_Scientific_Calculator/
 ├── calculator/
 │   ├── __init__.py
 │   ├── calculator_engine.py
@@ -210,506 +442,91 @@ Simple_Calculator/
 │   ├── gui_helpers.py
 │   ├── storage.py
 │   └── version.py
-│
 ├── tests/
 │   ├── test_calculator_engine.py
 │   ├── test_gui.py
 │   ├── test_gui_helpers.py
-│   └── test_storage.py
-│
+│   ├── test_history_memory_windows.py
+│   ├── test_keyboard_shortcuts_window.py
+│   ├── test_storage.py
+│   └── test_window_geometry.py
 ├── .github/
 │   └── workflows/
-│       ├── tests.yml
-│       └── release.yml
-│
-├── .gitignore
+│       ├── release.yml
+│       └── tests.yml
 ├── .pre-commit-config.yaml
+├── .gitignore
 ├── main.py
 ├── pyproject.toml
 ├── README.md
 └── requirements.txt
 ```
 
----
+## Architecture
 
-## Application Architecture
+### `calculator/calculator_engine.py`
 
-The project is separated into several modules instead of keeping all functionality in one script.
+Contains calculator logic and safe AST-based expression evaluation.
 
-### `calculator_engine.py`
+This layer does not depend on Tkinter.
 
-Contains the calculator's mathematical logic.
+### `calculator/gui.py`
 
-Responsibilities include:
+Contains the Tkinter desktop interface and user interaction logic.
 
-- Parsing expressions
-- Evaluating AST nodes
-- Validating operators
-- Formatting numeric results
+### `calculator/gui_helpers.py`
 
-The calculator engine is independent of the GUI and can be tested directly.
+Contains smaller display and formatting helpers used by the GUI.
 
-### `storage.py`
+### `calculator/storage.py`
 
-Handles application persistence.
+Handles JSON persistence for:
 
-Responsibilities include:
+- History
+- Memory
+- Last result
+- Application preferences
 
-- Locating the application-data directory
-- Loading JSON data
-- Saving JSON data
-- History type definitions
-- Memory type definitions
+### `calculator/version.py`
 
-### `gui_helpers.py`
+Contains the application version.
 
-Contains non-visual helper logic used by the graphical interface.
-
-Examples include:
-
-- Building formatted history text
-- Formatting memory values
-- Appending calculator input
-- Backspace behavior
-
-Separating this logic from Tkinter makes it easier to test.
-
-### `gui.py`
-
-Contains the Tkinter application.
-
-Responsibilities include:
-
-- Main window
-- Menus
-- Calculator buttons
-- Display
-- History window
-- Memory window
-- Keyboard shortcuts
-- User-facing error handling
-
-### `version.py`
-
-Contains the application version:
-
-```python
-__version__ = "1.0.0"
-```
-
----
-
-## Requirements
-
-The project currently targets Python 3.12.
-
-Check your Python version:
-
-```bash
-python --version
-```
-
-Example:
+Current version:
 
 ```text
-Python 3.12.10
+0.1.0
 ```
-
----
-
-## Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/BestJustSteve/Simple_Calculator.git
-```
-
-Enter the project directory:
-
-```bash
-cd Simple_Calculator
-```
-
-Install the development dependencies:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
----
-
-## Running the Calculator
-
-Start the application with:
-
-```bash
-python main.py
-```
-
----
-
-## Testing
-
-The project uses `pytest`.
-
-Run the complete test suite:
-
-```bash
-python -m pytest
-```
-
-Run the tests in verbose mode:
-
-```bash
-python -m pytest -v
-```
-
-The current test suite contains:
-
-```text
-83 tests
-```
-
-All 83 tests are currently passing.
-
----
-
-## Test Coverage
-
-Coverage is measured with `pytest-cov`.
-
-Run:
-
-```bash
-python -m pytest --cov=calculator --cov-report=term-missing
-```
-
-Current coverage:
-
-| Module | Coverage |
-|---|---:|
-| `calculator_engine.py` | 100% |
-| `gui_helpers.py` | 100% |
-| `storage.py` | 97% |
-| `gui.py` | 40% |
-| Overall project | 57% |
-
-The GUI is intentionally tested primarily around application behavior rather than attempting to unit-test every line of Tkinter widget construction.
-
----
-
-## Code Quality
-
-The project uses several development tools to help maintain code quality.
-
-### Ruff
-
-Ruff is used for linting and formatting.
-
-Check the project:
-
-```bash
-python -m ruff check .
-```
-
-Automatically fix supported issues:
-
-```bash
-python -m ruff check . --fix
-```
-
-Format the project:
-
-```bash
-python -m ruff format .
-```
-
----
-
-## Static Type Checking
-
-The project uses `mypy` for static type analysis.
-
-Run:
-
-```bash
-python -m mypy calculator
-```
-
-The application uses type hints throughout the calculator engine, storage layer, GUI helpers, and GUI.
-
-Structured history records use `TypedDict` so that fields such as:
-
-```text
-timestamp
-expression
-result
-```
-
-can be checked by mypy.
-
----
-
-## Pre-Commit Checks
-
-The repository uses `pre-commit` to run development checks before commits.
-
-Install the Git hooks:
-
-```bash
-python -m pre_commit install
-```
-
-Run all configured hooks manually:
-
-```bash
-python -m pre_commit run --all-files
-```
-
-The hooks include checks such as:
-
-- Ruff linting
-- Ruff formatting
-- mypy type checking
-
----
 
 ## Continuous Integration
 
-GitHub Actions is used to automatically validate the project.
+GitHub Actions is used to run automated project checks.
 
-The CI workflow can run:
+The test workflow verifies the project when changes are pushed or submitted through pull requests.
 
-- Dependency installation
-- Ruff
-- mypy
-- pytest
-- Test coverage
+The repository also contains a release workflow for packaged releases.
 
-This helps catch problems before changes are merged or released.
+## Development
 
----
-
-## Building the Windows Executable
-
-The application can be packaged into a standalone Windows executable with PyInstaller.
-
-Install PyInstaller:
+Before committing changes, run:
 
 ```bash
-python -m pip install pyinstaller
-```
-
-Build the executable:
-
-```bash
-python -m PyInstaller --onefile --windowed --name SimpleScientificCalculator main.py
-```
-
-The resulting executable is created under:
-
-```text
-dist/
-```
-
-Example:
-
-```text
-dist/SimpleScientificCalculator.exe
-```
-
-Python does not need to be installed on the computer running the packaged executable.
-
----
-
-## Versioned Windows Builds
-
-A release build can include the application version in the filename:
-
-```bash
-python -m PyInstaller --onefile --windowed --name SimpleScientificCalculator-v1.0.0 main.py
-```
-
-This produces:
-
-```text
-dist/SimpleScientificCalculator-v1.0.0.exe
-```
-
----
-
-## Releases
-
-The project uses semantic-style version tags such as:
-
-```text
-v1.0.0
-v1.1.0
-v2.0.0
-```
-
-The application's internal version is maintained in:
-
-```text
-calculator/version.py
-```
-
-Example:
-
-```python
-__version__ = "1.0.0"
-```
-
-Git releases can be tagged with:
-
-```bash
-git tag -a v1.0.0 -m "Simple Scientific Calculator v1.0.0"
-```
-
-and pushed with:
-
-```bash
-git push origin v1.0.0
-```
-
----
-
-## Automated Release Workflow
-
-The repository includes a GitHub Actions release workflow for Windows builds.
-
-When a version tag matching:
-
-```text
-v*.*.*
-```
-
-is pushed, the workflow can:
-
-1. Check out the repository
-2. Install Python
-3. Install dependencies
-4. Run Ruff
-5. Run mypy
-6. Run pytest
-7. Build the Windows executable
-8. Add the version tag to the executable filename
-9. Create a GitHub Release
-10. Attach the executable to the release
-
-For example:
-
-```bash
-git tag -a v1.1.0 -m "Simple Scientific Calculator v1.1.0"
-git push origin v1.1.0
-```
-
-can produce:
-
-```text
-SimpleScientificCalculator-v1.1.0.exe
-```
-
----
-
-## Development Quality Check
-
-Before committing a significant change, the complete local quality check is:
-
-```bash
+python -m ruff check . --fix
 python -m ruff check .
+python -m ruff format .
 python -m mypy calculator
+python -m pytest -v
 python -m pytest --cov=calculator --cov-report=term-missing
+python -m pre_commit run --all-files
 ```
 
-A successful run should show:
+## Version
+
+Current development version:
 
 ```text
-All checks passed!
-Success: no issues found
-All tests passed
+0.1.0
 ```
-
----
-
-## Technologies Used
-
-- Python 3.12
-- Tkinter
-- ttk
-- Python AST
-- JSON
-- pathlib
-- pytest
-- pytest-cov
-- Ruff
-- mypy
-- pre-commit
-- PyInstaller
-- Git
-- GitHub
-- GitHub Actions
-
----
-
-## Development Goals
-
-This project is also being used as a practical Python software-development learning project.
-
-It demonstrates concepts including:
-
-- Python fundamentals
-- Functions
-- Classes
-- Type hints
-- Typed dictionaries
-- Exception handling
-- File persistence
-- JSON serialization
-- AST parsing
-- GUI development
-- Modular application architecture
-- Unit testing
-- Mocking
-- Test coverage
-- Static analysis
-- Linting
-- Automated formatting
-- Git version control
-- Continuous integration
-- Executable packaging
-- Automated releases
-
----
-
-## Future Improvements
-
-Possible future enhancements include:
-
-- Additional memory-management tools
-- Improved history searching and filtering
-- Exporting calculation history
-- User-selectable themes
-- Additional keyboard shortcuts
-- Scientific calculator functions
-- Improved accessibility
-- Installer creation
-- Automatic version/tag validation
-- Additional integration testing
-- Release checksums
-- Signed Windows builds
-
----
-
-## Author
-
-**Steve Butler**
-
-GitHub: [BestJustSteve](https://github.com/BestJustSteve)
-
----
 
 ## License
 
-No license has currently been specified for this project.
+No license has been selected yet.
