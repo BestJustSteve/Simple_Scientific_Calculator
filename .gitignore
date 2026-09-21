@@ -7,9 +7,10 @@ calculator_data.json
 .venv/
 venv/
 
-dist/
+# PyInstaller
 build/
-*.spec
+dist/
+*.spec.bak
 
 .idea/
 .vscode/

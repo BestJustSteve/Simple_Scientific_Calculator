@@ -1,15 +1,16 @@
-name: Build Windows Release
+name: Build and Release
 
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v*"
 
 permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  build-windows:
+    name: Build Windows Executable
     runs-on: windows-latest
 
     steps:
@@ -20,40 +21,88 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: "pip"
 
-      - name: Install dependencies
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install application requirements
+        run: python -m pip install -r requirements.txt
+
+      - name: Install build and test tools
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
           python -m pip install pyinstaller
+          python -m pip install pytest pytest-cov ruff mypy
 
-      - name: Run Ruff
-        run: |
-          python -m ruff check .
-
-      - name: Run mypy
-        run: |
-          python -m mypy calculator
-
-      - name: Run tests
-        run: |
-          python -m pytest --cov=calculator --cov-report=term-missing
-
-      - name: Build Windows executable
-        run: |
-          python -m PyInstaller --onefile --windowed --name SimpleScientificCalculator main.py
-
-      - name: Rename executable
+      - name: Verify release tag matches application version
         shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}"
-          Rename-Item `
-            "dist\SimpleScientificCalculator.exe" `
-            "SimpleScientificCalculator-$version.exe"
+          $version = python -c "from calculator.version import __version__; print(__version__)"
+          $expectedTag = "v$version"
+          $actualTag = "${{ github.ref_name }}"
+
+          Write-Host "Application version: $version"
+          Write-Host "Expected tag: $expectedTag"
+          Write-Host "Actual tag: $actualTag"
+
+          if ($actualTag -ne $expectedTag) {
+              Write-Error "Tag $actualTag does not match application version $expectedTag"
+              exit 1
+          }
+
+      - name: Run Ruff
+        run: python -m ruff check .
+
+      - name: Run mypy
+        run: python -m mypy calculator
+
+      - name: Run tests
+        run: python -m pytest -v
+
+      - name: Build executable
+        run: |
+          python -m PyInstaller --clean --noconfirm SimpleScientificCalculator.spec
+
+      - name: Verify executable exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "dist\SimpleScientificCalculator.exe")) {
+              Write-Error "SimpleScientificCalculator.exe was not created."
+              exit 1
+          }
+
+          Get-Item "dist\SimpleScientificCalculator.exe"
+
+      - name: Generate SHA256 checksum
+        shell: pwsh
+        run: |
+          $hash = (
+              Get-FileHash `
+                  "dist\SimpleScientificCalculator.exe" `
+                  -Algorithm SHA256
+          ).Hash.ToLower()
+
+          "$hash  SimpleScientificCalculator.exe" |
+              Set-Content `
+                  "dist\SHA256SUMS.txt" `
+                  -Encoding ascii
+
+          Get-Content "dist\SHA256SUMS.txt"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimpleScientificCalculator-Windows
+          path: |
+            dist/SimpleScientificCalculator.exe
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/SimpleScientificCalculator-${{ github.ref_name }}.exe
+          name: Simple Scientific Calculator ${{ github.ref_name }}
           generate_release_notes: true
+          files: |
+            dist/SimpleScientificCalculator.exe
+            dist/SHA256SUMS.txt
